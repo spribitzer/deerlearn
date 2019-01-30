@@ -1,9 +1,19 @@
-%% This script prepares the DEER data from Edwards and Stoll (10.1016/j.jmr.2018.01.021) to be used with the python and tensorflow based DEERlearn 
-clear 
+%% This script prepares the DEER data from Edwards and Stoll (10.1016/j.jmr.2018.01.021) to be used with the python and tensorflow based DEERlearn
+clear
 clc
 
 TimeTraceLength = 256;
 PofRLength = 256;
+
+Test = true; % if you set this to true, you will be presented with a plot
+% that shows a selected range of S(t)'s and their
+% corresponding P(r)'s. both are plotted twice, once with
+% their corresponding t/r axis and once without (just the 256
+% data points). This allows to verify that the stretching
+% process worked correctly
+TestStart = 4;
+TestEnd = 14;
+
 
 %% Get time domain signals and prepare them
 dat = load('timetraces_2LZM');
@@ -27,11 +37,18 @@ P0 = PofRs.P0;
 
 %% Prepare Output
 
-nTraces = height(DataTable);
 % -------------------------------------------------------------------------
-% For testing
-% nTests = 16;
-% nTraces = nTests;
+if Test
+  nTests = TestEnd - TestStart;
+  nTraces = nTests;
+  randInd = TestStart:TestEnd;
+else
+  nTraces = height(DataTable);
+  
+  % randomize order of the learn data set
+  rng(512)
+  randInd = randperm(nTraces);
+end
 
 % prepare tensors
 TD = zeros(nTraces,TimeTraceLength);
@@ -40,18 +57,10 @@ Tmaxvec = zeros(1,nTraces);
 PR = zeros(nTraces,PofRLength);
 Rs = zeros(nTraces,PofRLength);
 
-% randomize order of the learn data set
-rng(512)
-randInd = randperm(nTraces);
-% -------------------------------------------------------------------------
-% Testing
-% randInd = 1:nTraces;
+LoopLength = nTraces;
 
 % picks the time domain signal and pairs it with the corresponding P(r)
-for i = 1 : nTraces
-% -------------------------------------------------------------------------
-% For Testing
-% for i = 1 : nTests
+for i = 1 : LoopLength
   index = randInd(i);
   
   S0 = DataTable.S0(index);
@@ -71,38 +80,61 @@ for i = 1 : nTraces
 end
 
 
+%% plot or write to csv files
 % -------------------------------------------------------------------------
 % for testing, displays the P(r)'s and S(t)'s versus their corresponding
 % axes as well as per elements. allows to check wether scaling was done
-% correctly 
+% correctly
 %
-% figure(1)
-% clf
-% hold on
-% for i = 4 : 14
-%   subplot(2,2,1)
-%   hold on
-%   plot(Rs(i,:),PR(i,:))
-%   
-%   subplot(2,2,2)
-%   hold on
-%   plot(PR(i,:))
-%   
-%   subplot(2,2,3)
-%   hold on
-%   tvec = linspace(0,Tmaxvec(i),TimeTraceLength);
-%   plot(tvec,TD(i,:))
-%   
-%   subplot(2,2,4)
-%   hold on
-%   plot(TD(i,:))
-% end
-% -------------------------------------------------------------------------
-
-
-%% write to csv files
-csvwrite('PR.csv',PR);
-csvwrite('TD.csv',TD);
-csvwrite('Rs.csv',Rs);
-csvwrite('TmaxVec.csv',Tmaxvec.');
-csvwrite('Tref.csv',tref);
+if Test
+  figure(1)
+  clf
+  subplot(2,2,1)
+  hold on
+  xlabel('r [nm]')
+  
+  % plot the original P(r) before any interpolation
+  Pindex = DataTable.Pidx(TestStart);
+  plot(r0,P0(Pindex,:),'k')
+  
+  subplot(2,2,2)
+  hold on
+  xlabel('DataPoints')
+  
+  subplot(2,2,3)
+  hold on
+  xlabel('t [\mus]')
+  
+  % plot the original S(t) before any interpolation
+  S0 = DataTable.S0(TestStart);
+  S0 = S0{1};
+  tmax = DataTable.tmax(TestStart);
+  taxis = linspace(0,tmax,length(S0));
+  plot(taxis,S0,'k')
+  
+  subplot(2,2,4)
+  hold on
+  xlabel('DataPoints')
+  
+  for i = 1 : nTraces
+    subplot(2,2,1)
+    plot(Rs(i,:),PR(i,:))
+    
+    subplot(2,2,2)
+    plot(PR(i,:))
+    
+    subplot(2,2,3)
+    tvec = linspace(0,Tmaxvec(i),TimeTraceLength);
+    plot(tvec,TD(i,:))
+    
+    subplot(2,2,4)
+    plot(TD(i,:))
+  end
+    
+else
+  csvwrite('PR.csv',PR);
+  csvwrite('TD.csv',TD);
+  csvwrite('Rs.csv',Rs);
+  csvwrite('TmaxVec.csv',Tmaxvec.');
+  csvwrite('Tref.csv',tref);
+end
