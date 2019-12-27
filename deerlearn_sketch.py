@@ -2,6 +2,10 @@
 # setup
 
 # import required libraries
+
+import os
+os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+
 import tensorflow as tf
 from tensorflow.keras import layers
 import numpy as np
@@ -35,11 +39,11 @@ def calculateRaxis(tmax, tref, nPoints = 256, rrefmin = 0.5, rrefmax = 7.2):
 # load and process input
 
 # load files for learning and evaluation
-PRraw = np.genfromtxt('./Edwards_Stoll_JMR_2018_testset/PR.csv', delimiter=',') # P(r)'s, tensor
-TD = np.genfromtxt('./Edwards_Stoll_JMR_2018_testset/TD.csv', delimiter=',')    # S(t)'s, time domain signals, tensor
-Rs = np.genfromtxt('./Edwards_Stoll_JMR_2018_testset/Rs.csv', delimiter=',')    # the r-axes of all data sets, used for verification only, tensor
-Tref = np.genfromtxt('./Edwards_Stoll_JMR_2018_testset/Tref.csv', delimiter=',')# reference tmax, which corresponds to a stretch factor of 1, scalar
-Tmax = np.genfromtxt('./Edwards_Stoll_JMR_2018_testset/TmaxVec.csv', delimiter=',') # the tmax of the individual S(t)'s, vector
+PRraw = np.load('./Edwards_Stoll_JMR_2018_testset/PR.npy')
+TD = np.load('./Edwards_Stoll_JMR_2018_testset/TD.npy')
+Rs = np.load('./Edwards_Stoll_JMR_2018_testset/Rs.npy')
+Tref = np.load('./Edwards_Stoll_JMR_2018_testset/Tref.npy')
+Tmax = np.load('./Edwards_Stoll_JMR_2018_testset/TmaxVec.npy') 
 
 # determine shape of the tensors that are used for learning
 [nTraces, nTimePoints] = TD.shape
