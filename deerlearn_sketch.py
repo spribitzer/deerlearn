@@ -8,8 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # print tensorflow versions to console
-print(tf.VERSION)
-print(tf.keras.__version__)
+# print(tf.VERSION)
+# print(tf.keras.__version__)
 
 # configuration
 addNoise = False
@@ -80,7 +80,7 @@ model.add(layers.Dense(128, activation = tf.nn.tanh))                           
 model.add(layers.Dense(128, activation = tf.nn.tanh))                           # hyperbolic tangent activation
 model.add(layers.Dense(256, activation = tf.nn.sigmoid))                        # logistic sigmoid activation
 
-model.compile(optimizer = tf.train.AdamOptimizer(0.01),
+model.compile(optimizer = tf.compat.v1.train.AdamOptimizer(0.01),
               loss = 'mse',       # mean squared error
               metrics = ['mae'])  # mean absolute error
 
